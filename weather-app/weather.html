@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Web</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="search">
+                <input type="text" placeholder="Enter city name" spellcheck="false">
+                <button><img src="search.jpg.png" alt="search"></button>
+            </div>
+            <div class="weather">
+                <img src="weather-icon.png" class="weather-icon" alt="weather icon">
+                <h1 class="temp">22°C</h1>
+                <h2 class="city">City</h2>
+                <div class="details">
+                    <div class="col">
+                        <img src="humidity.png" alt="humidity">
+                        <div>
+                            <p class="humidity">50%</p>
+                            <p>Humidity</p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <img src="wind.png" alt="wind">
+                        <div>
+                            <p class="wind">15 km/h</p>
+                            <p>Wind speed</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="time">
+                    <h3 class="local-time">Local Time: 00:00</h3>
+                    <h3 class="time-difference">IST Time Difference: +0.0 hours</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const apiKey = "d61a481dd52e4e5e64ac81d7e75bfd52";
+        const searchBox = document.querySelector(".search input");
+        const searchBtn = document.querySelector(".search button");
+        const weatherIcon = document.querySelector(".weather-icon");
+
+        const weatherIcons = {
+            "Clear": "clear.png",
+            "Clouds": "clouds.png",
+            "Rain": "rain.png",
+            "Drizzle": "drizzle.png",
+            "Mist": "mist.png",
+            "Snow": "snow.png"
+        };
+
+        async function checkWeather(city) {
+            try {
+                const apiUrl = `https://api.openweathermap.org/data/2.5/weather?units=metric&q=${city}&appid=${apiKey}`;
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error('Weather data not found');
+                }
+                const data = await response.json();
+                console.log(data);
+
+                document.querySelector(".city").innerHTML = data.name;
+                document.querySelector(".temp").innerHTML = Math.round(data.main.temp) + "°C";
+                document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+                document.querySelector(".wind").innerHTML = data.wind.speed + " km/h";
+
+                const weatherCondition = data.weather[0].main;
+                weatherIcon.src = weatherIcons[weatherCondition] || "default.png";
+
+                const localTime = new Date((data.dt + data.timezone) * 1000).toLocaleString();
+                const istTimeDifference = getTimeDifference(data.timezone);
+                document.querySelector(".local-time").innerHTML = `Local Time: ${localTime}`;
+                document.querySelector(".time-difference").innerHTML = `IST Time Difference: ${istTimeDifference} hours`;
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                alert('Unable to fetch weather data. Please try again.');
+            }
+        }
+
+        function getTimeDifference(timezone) {
+            const ISTOffset = 5.5 * 3600; // IST is UTC+5:30
+            const cityOffset = timezone / 3600;
+            return (ISTOffset - timezone) / 3600;
+        }
+
+        searchBtn.addEventListener("click", () => {
+            checkWeather(searchBox.value);
+        });
+
+        searchBox.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                checkWeather(searchBox.value);
+            }
+        });
+    </script>
+</body>
+</html>
+
